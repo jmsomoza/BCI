@@ -1,0 +1,9 @@
+// peakfinder.h
+#ifndef PEAKFINDER_H
+#define PEAKFINDER_H
+
+#define EPS 2.2204e-16
+
+int peakFinder(int * data, int data_size, int * peakInds);
+
+#endif

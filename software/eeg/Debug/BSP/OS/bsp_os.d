@@ -1,0 +1,13 @@
+BSP/OS/bsp_os.o: ../BSP/OS/bsp_os.c
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/uC-LIBS/lib_def.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/uC-CPU/cpu_def.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/uC-CPU/ARM-Cortex-A/cpu.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/APP/cpu_cfg.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/uCOS-II/Ports/os_cpu.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/BSP/bsp.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/BSP/OS/bsp_os.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/uCOS-II/Source/os.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/uCOS-II/Source/ucos_ii.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/APP/app_cfg.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/APP/os_cfg.h
+BSP/OS/bsp_os.o: C:/Users/somoza/ECE492_Projects/EEG/software/eeg/BSP/bsp_int.h

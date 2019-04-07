@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;uC_Template_Project&apos; to &apos;bci-eeg&apos;" description="Rename resource &apos;uC_Template_Project&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="/uC_Template_Project" name="bci-eeg" stamp="1552076962017" updateReferences="true"/>&#x0A;<refactoring comment="Rename resource &apos;bci-eeg&apos; to &apos;eeg&apos;" description="Rename resource &apos;bci-eeg&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="/bci-eeg" name="eeg" stamp="1552077034754" updateReferences="true"/>
+</session>

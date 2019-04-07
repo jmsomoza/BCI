@@ -1,0 +1,456 @@
+/*
+*********************************************************************************************************
+*                                            EXAMPLE CODE
+*
+*                          (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*
+*               All rights reserved.  Protected by international copyright laws.
+*
+*               Please feel free to use any application code labeled as 'EXAMPLE CODE' in
+*               your application products.  Example code may be used as is, in whole or in
+*               part, or may be used as a reference only.
+*
+*               Please help us continue to provide the Embedded community with the finest
+*               software available.  Your honesty is greatly appreciated.
+*
+*               You can contact us at www.micrium.com.
+*********************************************************************************************************
+*/
+
+/*
+*********************************************************************************************************
+*
+*                                          APPLICATION CODE
+*
+*                                            CYCLONE V SOC
+*
+* Filename      : app.c
+* Version       : V1.00
+* Programmer(s) : JBL
+* Modifications	: Nancy Minderman nancy.minderman@ualberta.ca, Brendan Bruner bbruner@ualberta.ca
+* 				  Changes to this project include scatter file changes and BSP changes for port from
+* 				  Cyclone V dev kit board to DE1-SoC
+*********************************************************************************************************
+* Note(s)       : none.
+*********************************************************************************************************
+*/
+
+
+/*
+*********************************************************************************************************
+*                                            INCLUDE FILES
+*********************************************************************************************************
+*/
+
+#include <alt_bridge_manager.h>
+#include  <app_cfg.h>
+#include  <lib_mem.h>
+
+#include  <bsp.h>
+#include  <bsp_int.h>
+#include  <bsp_os.h>
+#include  <cpu_cache.h>
+
+#include  <cpu.h>
+#include  <cpu_core.h>
+
+#include  <os.h>
+#include  <hps.h>
+#include  <socal.h>
+#include  <hwlib.h>
+#include  <lcd.h>
+#include  <circular_buffer.h>
+#include  <peakfinder.h>
+
+#include <alt_16550_uart.h>
+#include <string.h>
+#include  <time.h>
+
+
+// Compute absolute address of any slave component attached to lightweight bridge
+// base is address of component in QSYS window
+// This computation only works for slave components attached to the lightweight bridge
+// base should be ranged checked from 0x0 - 0x1fffff
+
+#define FPGA_TO_HPS_LW_ADDR(base)  ((void *) (((char *)  (ALT_LWFPGASLVS_ADDR))+ (base)))
+
+#define TOGGLE_LED_PRIO 6
+#define READ_SWITCH_TASK_PRIO 7
+#define DISPLAY_LCD_TASK_PRIO 5
+#define TASK_STACK_SIZE 4096
+#define BUFFER_SIZE 100
+#define ADC_SIZE 100
+
+#define LEDR_ADD 0x00000000
+#define LEDR_BASE FPGA_TO_HPS_LW_ADDR(LEDR_ADD)
+
+#define LCDR_ADD 0x00000200
+#define LCDR_BASE FPGA_TO_HPS_LW_ADDR(LCDR_ADD)
+
+
+#define SW_ADD 0x00000300
+#define SW_BASE FPGA_TO_HPS_LW_ADDR(SW_ADD)
+
+// externel LEDs
+#define EXT_ADD 0x00000400
+#define EXT_BASE FPGA_TO_HPS_LW_ADDR(EXT_ADD)
+
+// adc
+#define ADC_ADD 0x00000500
+#define ADC_BASE FPGA_TO_HPS_LW_ADDR(ADC_ADD)
+
+// adc
+#define INPUT_ADD 0x00000600
+#define INPUT_BASE FPGA_TO_HPS_LW_ADDR(INPUT_ADD)
+
+
+/*
+*********************************************************************************************************
+*                                       LOCAL GLOBAL VARIABLES
+*********************************************************************************************************
+*/
+
+CPU_STK ToggleLEDStk[TASK_STACK_SIZE];
+CPU_STK ReadSwitchStk[TASK_STACK_SIZE];
+CPU_STK DisplayOnLCDStk[TASK_STACK_SIZE];
+
+void* switchelements[32];
+OS_EVENT*  MsgQ;
+FILE * fp;
+
+uint16_t* buffer;
+cbuf_handle_t cirbuf;
+
+/*
+*********************************************************************************************************
+*                                      LOCAL FUNCTION PROTOTYPES
+*********************************************************************************************************
+*/
+
+static  void  ToggleLED (void *p_arg);
+static  void  ReadSwitch (void *p_arg);
+static  void  DisplayOnLCD (void *p_arg);
+void print_buffer_status(cbuf_handle_t cbuf);
+
+/*
+*********************************************************************************************************
+*                                               main()
+*
+* Description : Entry point for C code.
+*
+* Arguments   : none.
+*
+* Returns     : none.
+*
+* Note(s)     : (1) It is assumed that your code will call main() once you have performed all necessary
+*                   initialisation.
+*********************************************************************************************************
+*/
+
+int main ()
+{
+    INT8U os_err;
+    INT8U os_err_MsgQ;
+    INT8U os_err_ReadSwitch;
+    INT8U os_err_DisplayOnLCD;
+
+    BSP_WatchDog_Reset();                                       /* Reset the watchdog as soon as possible.              */
+
+                                                                /* Scatter loading is complete. Now the caches can be activated.*/
+    BSP_BranchPredictorEn();                                    /* Enable branch prediction.                            */
+    BSP_L2C310Config();                                         /* Configure the L2 cache controller.                   */
+    BSP_CachesEn();                                             /* Enable L1 I&D caches + L2 unified cache.             */
+
+    ALT_BRIDGE_t lw_bridge = ALT_BRIDGE_LWH2F;
+    ALT_STATUS_CODE err_bridge = alt_bridge_init(lw_bridge, NULL, NULL);
+
+
+
+    CPU_Init();
+
+    Mem_Init();
+
+    BSP_Init();
+
+
+    OSInit();
+    InitLCD();
+
+    // initialize buffer of size BUFFER_SIZE
+    buffer = malloc(BUFFER_SIZE * sizeof(uint16_t));
+    // initialize circular buffer using the buffer just created
+    cirbuf = circular_buf_init(buffer, BUFFER_SIZE);
+
+    MsgQ = OSQCreate(switchelements, 32);
+
+    if (os_err_MsgQ != OS_ERR_NONE) {
+            ; /* Handle error. */
+        }
+
+    os_err = OSTaskCreateExt((void (*)(void *)) ToggleLED,   /* Create the start task.                               */
+                             (void          * ) 0,
+                             (OS_STK        * )&ToggleLEDStk[TASK_STACK_SIZE - 1],
+                             (INT8U           ) TOGGLE_LED_PRIO,
+                             (INT16U          ) TOGGLE_LED_PRIO,  // reuse prio for ID
+                             (OS_STK        * )&ToggleLEDStk[0],
+                             (INT32U          ) TASK_STACK_SIZE,
+                             (void          * )0,
+                             (INT16U          )(OS_TASK_OPT_STK_CLR | OS_TASK_OPT_STK_CHK));
+
+    if (os_err != OS_ERR_NONE) {
+        ; /* Handle error. */
+    }
+
+    os_err_ReadSwitch = OSTaskCreateExt((void (*)(void *)) ReadSwitch,   // Create the start task.
+                                     (void          * ) 0,
+                                     (OS_STK        * )&ReadSwitchStk[TASK_STACK_SIZE - 1],
+                                     (INT8U           ) READ_SWITCH_TASK_PRIO,
+                                     (INT16U          ) READ_SWITCH_TASK_PRIO,  // reuse prio for ID
+                                     (OS_STK        * )&ReadSwitchStk[0],
+                                     (INT32U          ) TASK_STACK_SIZE,
+                                     (void          * )0,
+                                     (INT16U          )(OS_TASK_OPT_STK_CLR | OS_TASK_OPT_STK_CHK));
+
+        if (os_err_ReadSwitch != OS_ERR_NONE) {
+                    ; // Handle error.
+                }
+
+    os_err_DisplayOnLCD = OSTaskCreateExt((void (*)(void *)) DisplayOnLCD,   /* Create the start task.                               */
+                                     (void          * ) 0,
+                                     (OS_STK        * )&DisplayOnLCDStk[TASK_STACK_SIZE - 1],
+                                     (INT8U           ) DISPLAY_LCD_TASK_PRIO,
+                                     (INT16U          ) DISPLAY_LCD_TASK_PRIO,  // reuse prio for ID
+                                     (OS_STK        * )&DisplayOnLCDStk[0],
+                                     (INT32U          ) TASK_STACK_SIZE,
+                                     (void          * )0,
+                                     (INT16U          )(OS_TASK_OPT_STK_CLR | OS_TASK_OPT_STK_CHK));
+
+	if (os_err_DisplayOnLCD != OS_ERR_NONE) {
+				; /* Handle error. */
+			}
+
+
+	CPU_IntEn();
+
+    OSStart();
+
+}
+
+
+/*
+*********************************************************************************************************
+*                                           ToggleLED()
+*
+* Description : Upon outputting the sampled voltage reading from the circular buffer, check its
+* 				difference with the previous sample and determine whether an LED should be toggled
+*
+* Arguments   : p_arg       Argument passed by 'OSTaskCreate()'.
+*
+* Returns     : none.
+*
+* Created by  : main().
+*
+* Notes       : (1) The determination of the "eye blink" voltage detection level (250mV) was found
+* 					from various tests, and is adequate enough to detect the "eye blink".
+*********************************************************************************************************
+*/
+
+static  void  ToggleLED (void *p_arg)
+{
+
+    BSP_OS_TmrTickInit(OS_TICKS_PER_SEC);                       /* Configure and enable OS tick interrupt.              */
+    int cnt = 0;
+    // variable representing the voltage of the last sample
+    //uint16_t old_voltage;
+    // variable representing the voltage of the current sample
+    uint16_t voltage;
+    // variable representing the difference in voltage of the last 2 samples
+    //uint16_t diff;
+    OSTimeDlyHMSM(0, 0, 0, 750);
+
+    for(;;) {
+        BSP_WatchDog_Reset();                                   /* Reset the watchdog.                                  */
+        // retrieve the next available value from the buffer
+        //OSTimeDlyHMSM(0, 0, 0, 500);
+        circular_buf_get(cirbuf, &voltage);
+        //cnt++;
+        //printf("VVVVVVVVVVVVVVVVVVVoltage value: %u and INDEX is %i and the TIME is: %i\n", voltage, cnt, OSTimeGet());
+        // find the difference in voltage of the last 2 samples
+        //diff = voltage - old_voltage;
+        //printf("DIFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF value: %u\n", diff);
+		OSTimeDlyHMSM(0, 0, 0, 500);
+		// check if the difference in voltage of the last 2 samples had a magnitude of 250mV or more
+		if(voltage != 999/*diff >= 250 && diff <= 65285 && old_voltage != 0*/)
+		{
+	        // if so then toggle the LED
+			alt_write_word(EXT_BASE, (1 << 6)-1);
+		}
+		cnt++;
+		//old_voltage = voltage;
+    }
+
+}
+
+/*
+*********************************************************************************************************
+*                                           ReadSwitch()
+*
+* Description : Reads data value from switch.
+*
+* Arguments   : p_arg       Argument passed by 'OSTaskCreate()'.
+*
+* Returns     : none.
+*
+* Created by  : main().
+*
+* Notes       : (1) The ticker MUST be initialised AFTER multitasking has started.
+*********************************************************************************************************
+*/
+
+static  void  ReadSwitch (void *p_arg)
+{
+
+    BSP_OS_TmrTickInit(OS_TICKS_PER_SEC);                       // Configure and enable OS tick interrupt.
+
+
+    for(;;) {
+    	uint32_t test = alt_read_dword(SW_BASE);
+    	// turns on the LED # corresponding to switch value (0-15)
+    	alt_write_word(EXT_BASE, (1 << test)-1);
+    	OSTimeDlyHMSM(0, 0, 0, 500);
+
+    	//printf("%u\n", test);
+    	char sw_val[20];
+    	sprintf(sw_val, "%u", test);
+    	//printf("%s\n", sw_val);
+
+    	OSQPost(MsgQ, (void*)test);
+    }
+
+}
+
+/*
+*********************************************************************************************************
+*                                           DisplayOnLCD()
+*
+* Description : Displays the received switch data on the LCD
+*
+* Arguments   : p_arg       Argument passed by 'OSTaskCreate()'.
+*
+* Returns     : none.
+*
+* Created by  : main().
+*
+* Notes       : (1) The ticker MUST be initialised AFTER multitasking has started.
+*********************************************************************************************************
+*/
+
+static  void  DisplayOnLCD (void *p_arg)
+{
+	 INT8U os_err_local;
+	 int index_counter = 0;
+	// initialize variables
+	char sw_val[20];
+	char adc_val[ADC_SIZE];
+	uint16_t adcarray[ADC_SIZE];
+	int adcarr[ADC_SIZE] = {0};
+    //uint16_t adc = 0;
+	int listOfIndexes[ADC_SIZE];
+	int indx;
+
+    // initialize file to store all the received values from the ADC in
+	fp = fopen("c:\\users\\somoza\\hithere.txt","w");
+
+	// align the LCD screen to print the required information
+	ClearLCD();
+	HomeLCD();
+	PrintStringLCD("Volt(mV): ");
+	MoveCursorLCD(20);
+	PrintStringLCD("Switches: ");
+
+	for(;;)
+	{
+//		for(int j = 0; j < ADC_SIZE; j++){
+//			// read sampled voltage data from the ADC dedicated memory address
+//			adcarray[j] = alt_read_dword(ADC_BASE);
+//			adcarr[j] = (int) adcarray[j];
+//			//OSTimeDlyHMSM(0, 0, 0, 500);
+//			printf("%u\n", adcarray[j]);
+//			fprintf(fp, "%u\r\n", adcarray[j]);
+//			//sprintf(adc_val, "%u", adcarray[j]);
+//		}
+
+		int adcarr[] = {3992,3948,3932,3924,3904,3864,3852,3823,3796,3788,3768,3740,
+		    3712,3668,3667,4095,3879,3764,3719,3667,3612,3567,3568,3596,3608,3547,3459,
+		    3248,3239,3223,3276,3235,3059,3596,3136,3047,3036,3048,3067,3072,3055,3152,
+		    3052,3011,2995,3183,3084,2907,2875,2859,2927,2936,2880,2864,2879,2788,2872,
+		    3200,2832,2732,2711,2700,2691,2672,2660,2635,2628,2623,2619,2599,2623,2583,
+		    2595,2636,3516,2668,2491,2496,2500,2483,2408,2415,2423,3259,2659,2488,2451,
+		    2436,2431,2428,2392,2376,2364,2351,2335,2320,3107,2424,2340,2335};
+
+		// wait until you receive the switch value from the message queue
+		uint32_t msg = (uint32_t) OSQPend(MsgQ, 0, &os_err_local);
+		// store that value in another variable
+		sprintf(sw_val, "%u", msg);
+
+		//int listOfIndexes[ADC_SIZE] /*= {0}*/;
+
+		indx = peakFinder(adcarr/*(int) adcarray*/, ADC_SIZE, listOfIndexes);
+//		for(int i = 0; i < indx; i++){
+//			//OSTimeDlyHMSM(0, 0, 0, 500);
+//			printf("ADC_VALUES: %i %i\n", adcarr[listOfIndexes[i]]/*adcarray[listOfIndexes[i]]*/, listOfIndexes[i]);
+//		}
+		for(int j = 0; j < ADC_SIZE; j++){
+			// align the LCD screen to print the required information
+			MoveCursorLCD(10);
+			PrintStringLCD("     ");
+			MoveCursorLCD(10);
+			// store that value in another variable
+			//sprintf(adc_val, "%u", adcarray[j]);
+			//PrintStringLCD(adc_val);
+
+			if(j == listOfIndexes[index_counter] && j != 0){
+				sprintf(adc_val, "%i", adcarr[listOfIndexes[index_counter]] /*adcarray[listOfIndexes[index_counter]]*/);
+				PrintStringLCD(adc_val);
+				// insert sampled voltage from the ADC into the circular buffer
+				circular_buf_put(cirbuf, adcarr[listOfIndexes[index_counter]] /*adcarray[listOfIndexes[index_counter]]*/);
+				printf("GOING IN PORTAL AAAAAAA: %i  %i\n",  adcarr[listOfIndexes[index_counter]], index_counter);
+				OSTimeDlyHMSM(0, 0, 0, 500);
+				index_counter++;
+			}
+//			else{
+//				sprintf(adc_val, "%i", 999);
+//				PrintStringLCD(adc_val);
+			// insert sampled voltage from the ADC into the circular buffer
+//				circular_buf_put(cirbuf, 999);
+//				//printf("GOING IN PORTAL BBBBBBB: %i  %i\n",  999, index_counter);
+//				OSTimeDlyHMSM(0, 0, 0, 500);
+//			}
+			// align the LCD screen to print the required information
+			MoveCursorLCD(30);
+			PrintStringLCD("     ");
+			MoveCursorLCD(30);
+			PrintStringLCD(sw_val);
+		//fclose(fp);
+
+		// write the sampled voltage value from the ADC into the file indicated above
+		//fprintf(fp, "%u\r\n", adc);
+		//printf("ADC value: %u\n", adc);
+		// print the circular buffer size and indicators of whether it is full or empty
+		////print_buffer_status(cirbuf);
+		}
+		printf("FINITO\n");
+	}
+
+	free(buffer);
+	circular_buf_free(cirbuf);
+}
+
+void print_buffer_status(cbuf_handle_t cbuf)
+{
+	// print the circular buffer size and indicators of whether it is full or empty
+	printf("Full: %d, empty: %d, size %u\n",
+			circular_buf_full(cbuf),
+			circular_buf_empty(cbuf),
+			circular_buf_size(cbuf));
+}

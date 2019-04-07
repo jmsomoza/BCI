@@ -1,0 +1,14 @@
+13:30:27 **** Build of configuration Release for project bci-eeg ****
+make all 
+'Building file: ../uCOS-II/Source/os_core.c'
+'Invoking: ARM C Compiler 5'
+armcc -I"C:\intelFPGA\17.0\embedded\ip\altera\hps\altera_hps\hwlib\include\soc_cv_av\socal" -O2 -g --md --depend_format=unix_escaped --no_depend_system_headers --depend_dir="uCOS-II/Source" -c -o "uCOS-II/Source/os_core.o" "../uCOS-II/Source/os_core.c"
+"../uCOS-II/Source/os_core.c", line 28: Error:  #5: cannot open source input file "ucos_ii.h": No such file or directory
+  #include <ucos_ii.h>
+                      ^
+../uCOS-II/Source/os_core.c: 0 warnings, 1 error
+make: *** [uCOS-II/Source/os_core.o] Error 1
+uCOS-II/Source/subdir.mk:48: recipe for target 'uCOS-II/Source/os_core.o' failed
+
+13:30:28 Build Finished (took 343ms)
+

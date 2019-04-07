@@ -1,0 +1,23 @@
+// peakfinder.h
+#ifndef PEAKFINDER_H
+#define PEAKFINDER_H
+
+#define EPS 2.2204e-16
+
+//given a data array of adc samples set peakInds to be an array with the indices of the maximum peaks
+//in the data array and also return the number of peaks found in the data array
+int peakFinder(int * data, int data_size, int * peakInds);
+
+void diff (int * input, int * output, int input_size);
+
+void arrayProduct(int * arrayA, int * arrayB, int * output, int input_size);
+
+int min(int * data, int data_size);
+
+int max(int * data, int data_size);
+
+int indicesLessThanThreshold(int * inputdata, int in_size, float threshold, int * indices);
+
+void selectElements(int * inputdata, int * indices, int indices_size, int * outputdata);
+
+#endif
