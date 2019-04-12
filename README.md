@@ -5,6 +5,12 @@ This is the repository of our capstone project for a Brain Computer Interface us
 
 ## Source Index:
 
+**de10_nano_soc_ghrd.v:** Top-level hardware description file. This file defines the DE10-Nano entity and the corresponding signals and ports from its components.  
+
+### Folder: \soc_system\synthesis\submodules
+
+The verilog files found in this folder define the hardware components within the system found on the DE10-Nano. These files are generated using the QSys system integration tool.
+
 ### Folder: \software\eeg\APP
 
 **app.c:** Main component of our bare-metal solution. Contains the AnalyzeADCValues task and the ToggleLED task that both work simultaneously to analyze the ADC values being continually streamed from the DE10 board, detecting the peaks within those values, and then triggering the LEDs to turn on as soon as peaks are detected.
