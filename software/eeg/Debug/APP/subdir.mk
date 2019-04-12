@@ -6,17 +6,20 @@
 C_SRCS += \
 ../APP/app.c \
 ../APP/circular_buffer.c \
-../APP/peakfinder.c 
+../APP/peakfinder.c \
+../APP/test_peakfinder.c 
 
 C_DEPS += \
 ./APP/app.d \
 ./APP/circular_buffer.d \
-./APP/peakfinder.d 
+./APP/peakfinder.d \
+./APP/test_peakfinder.d 
 
 OBJS += \
 ./APP/app.o \
 ./APP/circular_buffer.o \
-./APP/peakfinder.o 
+./APP/peakfinder.o \
+./APP/test_peakfinder.o 
 
 
 # Each subdirectory must supply rules for building sources it contributes
