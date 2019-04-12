@@ -75,7 +75,7 @@
 #define FPGA_TO_HPS_LW_ADDR(base)  ((void *) (((char *)  (ALT_LWFPGASLVS_ADDR))+ (base)))
 
 #define TOGGLE_LED_PRIO 5
-#define ANALYZE_ADC_VALUES_PRIO 6
+#define DISPLAY_LCD_TASK_PRIO 6
 #define TASK_STACK_SIZE 4096
 #define BUFFER_SIZE 100
 #define ADC_SIZE 20
@@ -100,7 +100,7 @@
 */
 
 CPU_STK ToggleLEDStk[TASK_STACK_SIZE];
-CPU_STK AnalyzeADCValuesStk[TASK_STACK_SIZE];
+CPU_STK DisplayOnLCDStk[TASK_STACK_SIZE];
 
 FILE * fp;
 
@@ -114,7 +114,7 @@ cbuf_handle_t cirbuf;
 */
 
 static  void  ToggleLED (void *p_arg);
-static  void  AnalyzeADCValues (void *p_arg);
+static  void  DisplayOnLCD (void *p_arg);
 
 /*
 *********************************************************************************************************
@@ -135,7 +135,7 @@ int main ()
 {
     INT8U os_err;
     INT8U os_err_MsgQ;
-    INT8U os_err_AnalyzeADCValues;
+    INT8U os_err_DisplayOnLCD;
 
     ALT_BRIDGE_t lw_bridge = ALT_BRIDGE_LWH2F;
     ALT_STATUS_CODE err_bridge = alt_bridge_init(lw_bridge, NULL, NULL);
@@ -181,17 +181,17 @@ int main ()
         ; /* Handle error. */
     }
 
-    os_err_AnalyzeADCValues = OSTaskCreateExt((void (*)(void *)) AnalyzeADCValues,   /* Create the start task.                               */
+    os_err_DisplayOnLCD = OSTaskCreateExt((void (*)(void *)) DisplayOnLCD,   /* Create the start task.                               */
                                      (void          * ) 0,
-                                     (OS_STK        * )&AnalyzeADCValuesStk[TASK_STACK_SIZE - 1],
-                                     (INT8U           ) ANALYZE_ADC_VALUES_PRIO,
-                                     (INT16U          ) ANALYZE_ADC_VALUES_PRIO,  // reuse prio for ID
-                                     (OS_STK        * )&AnalyzeADCValuesStk[0],
+                                     (OS_STK        * )&DisplayOnLCDStk[TASK_STACK_SIZE - 1],
+                                     (INT8U           ) DISPLAY_LCD_TASK_PRIO,
+                                     (INT16U          ) DISPLAY_LCD_TASK_PRIO,  // reuse prio for ID
+                                     (OS_STK        * )&DisplayOnLCDStk[0],
                                      (INT32U          ) TASK_STACK_SIZE,
                                      (void          * )0,
                                      (INT16U          )(OS_TASK_OPT_STK_CLR | OS_TASK_OPT_STK_CHK));
 
-	if (os_err_AnalyzeADCValues != OS_ERR_NONE) {
+	if (os_err_DisplayOnLCD != OS_ERR_NONE) {
 				; /* Handle error. */
 			}
 
@@ -246,7 +246,7 @@ static  void  ToggleLED (void *p_arg)
 		}
 		// assign current sample value to the old_voltage variable
 		old_voltage = voltage;
-		// delay here to align tasks, so that the AnalyzeADCValues task can catch up to this task
+		// delay here to align tasks, so that the DisplayOnLCD task can catch up to this task
 		OSTimeDlyHMSM(0, 0, 1, 750);
     }
 
@@ -254,7 +254,7 @@ static  void  ToggleLED (void *p_arg)
 
 /*
 *********************************************************************************************************
-*                                           AnalyzeADCValues()
+*                                           DisplayOnLCD()
 *
 * Description : Analyze ADC_SIZE amount of voltage samples from the ADC and use the peakFinder function
 * 				in order to detect the presence of any peaks. Upon the detection of one or more peaks, the
@@ -271,7 +271,7 @@ static  void  ToggleLED (void *p_arg)
 *********************************************************************************************************
 */
 
-static  void  AnalyzeADCValues (void *p_arg)
+static  void  DisplayOnLCD (void *p_arg)
 {
 	// initialize variables
 	char adc_val[ADC_SIZE];

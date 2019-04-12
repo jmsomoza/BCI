@@ -184,8 +184,8 @@ int main ()
     os_err_AnalyzeADCValues = OSTaskCreateExt((void (*)(void *)) AnalyzeADCValues,   /* Create the start task.                               */
                                      (void          * ) 0,
                                      (OS_STK        * )&AnalyzeADCValuesStk[TASK_STACK_SIZE - 1],
-                                     (INT8U           ) ANALYZE_ADC_VALUES_PRIO,
-                                     (INT16U          ) ANALYZE_ADC_VALUES_PRIO,  // reuse prio for ID
+                                     (INT8U           ) DISPLAY_LCD_TASK_PRIO,
+                                     (INT16U          ) DISPLAY_LCD_TASK_PRIO,  // reuse prio for ID
                                      (OS_STK        * )&AnalyzeADCValuesStk[0],
                                      (INT32U          ) TASK_STACK_SIZE,
                                      (void          * )0,
