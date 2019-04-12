@@ -11,8 +11,9 @@
 			character_lcd_0_external_interface_RS   : out   std_logic;                                        -- RS
 			character_lcd_0_external_interface_RW   : out   std_logic;                                        -- RW
 			clk_clk                                 : in    std_logic                     := 'X';             -- clk
-			ext_leds_external_connection_export     : out   std_logic_vector(5 downto 0);                     -- export
+			ext_leds_external_connection_export     : out   std_logic_vector(11 downto 0);                    -- export
 			green_leds_external_connection_export   : out   std_logic_vector(7 downto 0);                     -- export
+			hps_0_h2f_reset_reset_n                 : out   std_logic;                                        -- reset_n
 			hps_0_hps_io_hps_io_emac1_inst_TX_CLK   : out   std_logic;                                        -- hps_io_emac1_inst_TX_CLK
 			hps_0_hps_io_hps_io_emac1_inst_TXD0     : out   std_logic;                                        -- hps_io_emac1_inst_TXD0
 			hps_0_hps_io_hps_io_emac1_inst_TXD1     : out   std_logic;                                        -- hps_io_emac1_inst_TXD1
@@ -78,8 +79,7 @@
 			memory_mem_dm                           : out   std_logic_vector(3 downto 0);                     -- mem_dm
 			memory_oct_rzqin                        : in    std_logic                     := 'X';             -- oct_rzqin
 			reset_reset_n                           : in    std_logic                     := 'X';             -- reset_n
-			switches_external_connection_export     : out   std_logic_vector(3 downto 0);                     -- export
-			hps_0_h2f_reset_reset_n                 : out   std_logic                                         -- reset_n
+			switches_external_connection_export     : out   std_logic_vector(3 downto 0)                      -- export
 		);
 	end component soc_system;
 
@@ -98,6 +98,7 @@
 			clk_clk                                 => CONNECTED_TO_clk_clk,                                 --                                clk.clk
 			ext_leds_external_connection_export     => CONNECTED_TO_ext_leds_external_connection_export,     --       ext_leds_external_connection.export
 			green_leds_external_connection_export   => CONNECTED_TO_green_leds_external_connection_export,   --     green_leds_external_connection.export
+			hps_0_h2f_reset_reset_n                 => CONNECTED_TO_hps_0_h2f_reset_reset_n,                 --                    hps_0_h2f_reset.reset_n
 			hps_0_hps_io_hps_io_emac1_inst_TX_CLK   => CONNECTED_TO_hps_0_hps_io_hps_io_emac1_inst_TX_CLK,   --                       hps_0_hps_io.hps_io_emac1_inst_TX_CLK
 			hps_0_hps_io_hps_io_emac1_inst_TXD0     => CONNECTED_TO_hps_0_hps_io_hps_io_emac1_inst_TXD0,     --                                   .hps_io_emac1_inst_TXD0
 			hps_0_hps_io_hps_io_emac1_inst_TXD1     => CONNECTED_TO_hps_0_hps_io_hps_io_emac1_inst_TXD1,     --                                   .hps_io_emac1_inst_TXD1
@@ -163,7 +164,6 @@
 			memory_mem_dm                           => CONNECTED_TO_memory_mem_dm,                           --                                   .mem_dm
 			memory_oct_rzqin                        => CONNECTED_TO_memory_oct_rzqin,                        --                                   .oct_rzqin
 			reset_reset_n                           => CONNECTED_TO_reset_reset_n,                           --                              reset.reset_n
-			switches_external_connection_export     => CONNECTED_TO_switches_external_connection_export,     --       switches_external_connection.export
-			hps_0_h2f_reset_reset_n                 => CONNECTED_TO_hps_0_h2f_reset_reset_n                  --                    hps_0_h2f_reset.reset_n
+			switches_external_connection_export     => CONNECTED_TO_switches_external_connection_export      --       switches_external_connection.export
 		);
 

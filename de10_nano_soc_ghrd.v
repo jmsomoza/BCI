@@ -98,7 +98,7 @@ module DE10_NANO_SoC_GHRD(
 	 
 	 //////////// External LEDS ///////
 	 
-	 output	[ 5: 0]		GPIO_1,
+	 output	[11:0]		GPIO_1,
 	 
 	//////////// ADC //////////
 	output		          		ADC_CONVST,
@@ -216,7 +216,7 @@ soc_system u0(
 				   .character_lcd_0_external_interface_EN   (GPIO_0_9),   //                                   .EN
 				   .character_lcd_0_external_interface_RS   (GPIO_0_8),   //                                   .RS
 				   .character_lcd_0_external_interface_RW   (GPIO_0_10),    //                                   .RW
-					.ext_leds_external_connection_export     (GPIO_1[5:0]),
+					.ext_leds_external_connection_export     (GPIO_1[11:0]),
 					.adc_0_external_interface_sclk           (ADC_SCK),           //           adc_0_external_interface.sclk
 				   .adc_0_external_interface_cs_n           (ADC_CONVST),           //                                   .cs_n
 				   .adc_0_external_interface_dout           (ADC_SDO),           //                                   .dout

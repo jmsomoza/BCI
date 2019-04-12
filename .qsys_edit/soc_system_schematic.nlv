@@ -39,7 +39,7 @@ preplace inst soc_system.hps_0.timer1 -pg 1
 preplace inst soc_system.hps_0.L2 -pg 1
 preplace inst soc_system.hps_0.eosc2 -pg 1
 preplace inst soc_system.hps_0.hps_io.border -pg 1
-preplace inst soc_system.sysid_qsys -pg 1 -lvl 2 -y 190
+preplace inst soc_system.sysid_qsys -pg 1 -lvl 2 -y 240
 preplace inst soc_system.hps_0.scu -pg 1
 preplace inst soc_system.hps_0.dcan1 -pg 1
 preplace inst soc_system.hps_0.sdmmc -pg 1
@@ -54,22 +54,23 @@ preplace inst soc_system.hps_0.arm_a9_1 -pg 1
 preplace inst soc_system.hps_0.nand0 -pg 1
 preplace inst soc_system.hps_0.gpio2 -pg 1
 preplace inst soc_system.hps_0.arm_gic_0 -pg 1
-preplace inst soc_system.hps_0 -pg 1 -lvl 2 -y 320
+preplace inst soc_system.hps_0 -pg 1 -lvl 2 -y 350
 preplace inst soc_system.clk_0 -pg 1 -lvl 1 -y 70
 preplace inst soc_system.hps_0.f2s_periph_ref_clk -pg 1
 preplace inst soc_system.hps_0.fpga_interfaces -pg 1
 preplace inst soc_system.hps_0.axi_sdram -pg 1
-preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)clk_0.clk_in_reset,(SLAVE)soc_system.reset) 1 0 1 NJ
-preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.switches_external_connection,(SLAVE)switches.external_connection) 1 0 3 NJ 460 NJ 460 NJ
 preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.green_leds_external_connection,(SLAVE)green_leds.external_connection) 1 0 2 NJ 60 NJ
-preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.memory,(SLAVE)hps_0.memory) 1 0 2 NJ 350 NJ
-preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)green_leds.clk,(SLAVE)hps_0.h2f_lw_axi_clock,(MASTER)clk_0.clk,(SLAVE)character_lcd_0.clk,(SLAVE)sysid_qsys.clk,(SLAVE)ext_leds.clk,(SLAVE)switches.clk,(SLAVE)adc_0.clk) 1 1 2 430 440 800
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)hps_0.memory,(SLAVE)soc_system.memory) 1 0 2 NJ 400 NJ
 preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.clk,(SLAVE)clk_0.clk_in) 1 0 1 NJ
-preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)adc_0.external_interface,(SLAVE)soc_system.adc_0_external_interface) 1 0 3 NJ 580 NJ 580 NJ
-preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.ext_leds_external_connection,(SLAVE)ext_leds.external_connection) 1 0 3 NJ 280 NJ 280 NJ
-preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)adc_0.adc_slave,(SLAVE)character_lcd_0.avalon_lcd_slave,(SLAVE)green_leds.s1,(SLAVE)sysid_qsys.control_slave,(MASTER)hps_0.h2f_lw_axi_master,(SLAVE)switches.s1,(SLAVE)ext_leds.s1) 1 1 2 470 160 780
-preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.hps_0_hps_io,(SLAVE)hps_0.hps_io) 1 0 2 NJ 330 NJ
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.reset,(SLAVE)clk_0.clk_in_reset) 1 0 1 NJ
+preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)sysid_qsys.clk,(SLAVE)character_lcd_0.clk,(SLAVE)ext_leds.clk,(SLAVE)hps_0.h2f_lw_axi_clock,(SLAVE)switches.clk,(SLAVE)adc_0.clk,(SLAVE)green_leds.clk,(MASTER)clk_0.clk) 1 1 2 410 230 820
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)ext_leds.external_connection,(SLAVE)soc_system.ext_leds_external_connection) 1 0 3 NJ 170 NJ 170 NJ
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.adc_0_external_interface,(SLAVE)adc_0.external_interface) 1 0 3 NJ 580 NJ 580 NJ
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)switches.external_connection,(SLAVE)soc_system.switches_external_connection) 1 0 3 NJ 470 NJ 470 NJ
+preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)ext_leds.s1,(SLAVE)sysid_qsys.control_slave,(SLAVE)green_leds.s1,(MASTER)hps_0.h2f_lw_axi_master,(SLAVE)character_lcd_0.avalon_lcd_slave,(SLAVE)switches.s1,(SLAVE)adc_0.adc_slave) 1 1 2 450 210 800
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.hps_0_hps_io,(SLAVE)hps_0.hps_io) 1 0 2 NJ 360 NJ
+preplace netloc EXPORT<net_container>soc_system</net_container>(MASTER)hps_0.h2f_reset,(MASTER)soc_system.hps_0_h2f_reset) 1 2 2 NJ 420 NJ
 preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)character_lcd_0.external_interface,(SLAVE)soc_system.character_lcd_0_external_interface) 1 0 3 NJ 140 NJ 140 NJ
-preplace netloc INTERCONNECT<net_container>soc_system</net_container>(MASTER)hps_0.h2f_reset,(SLAVE)switches.reset,(SLAVE)green_leds.reset,(MASTER)clk_0.clk_reset,(SLAVE)adc_0.reset,(SLAVE)ext_leds.reset,(SLAVE)character_lcd_0.reset,(SLAVE)sysid_qsys.reset) 1 1 2 450 180 820
-levelinfo -pg 1 0 200 1010
-levelinfo -hier soc_system 210 240 590 850 1000
+preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)character_lcd_0.reset,(SLAVE)switches.reset,(MASTER)clk_0.clk_reset,(SLAVE)adc_0.reset,(SLAVE)green_leds.reset,(SLAVE)sysid_qsys.reset,(SLAVE)ext_leds.reset) 1 1 2 430 190 840
+levelinfo -pg 1 0 200 1150
+levelinfo -hier soc_system 210 240 590 870 1020

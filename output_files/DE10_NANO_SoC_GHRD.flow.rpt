@@ -1,5 +1,5 @@
 Flow report for DE10_NANO_SoC_GHRD
-Fri Mar 29 20:17:26 2019
+Mon Apr 08 13:30:05 2019
 Quartus Prime Version 17.0.2 Build 602 07/19/2017 SJ Standard Edition
 
 
@@ -41,16 +41,16 @@ agreement for further details.
 +-----------------------------------------------------------------------------------+
 ; Flow Summary                                                                      ;
 +---------------------------------+-------------------------------------------------+
-; Flow Status                     ; Successful - Fri Mar 29 20:16:49 2019           ;
+; Flow Status                     ; Successful - Mon Apr 08 13:29:30 2019           ;
 ; Quartus Prime Version           ; 17.0.2 Build 602 07/19/2017 SJ Standard Edition ;
 ; Revision Name                   ; DE10_NANO_SoC_GHRD                              ;
 ; Top-level Entity Name           ; DE10_NANO_SoC_GHRD                              ;
 ; Family                          ; Cyclone V                                       ;
 ; Device                          ; 5CSEBA6U23I7                                    ;
 ; Timing Models                   ; Final                                           ;
-; Logic utilization (in ALMs)     ; 1,101 / 41,910 ( 3 % )                          ;
-; Total registers                 ; 1606                                            ;
-; Total pins                      ; 193 / 314 ( 61 % )                              ;
+; Logic utilization (in ALMs)     ; 1,111 / 41,910 ( 3 % )                          ;
+; Total registers                 ; 1622                                            ;
+; Total pins                      ; 199 / 314 ( 63 % )                              ;
 ; Total virtual pins              ; 0                                               ;
 ; Total block memory bits         ; 0 / 5,662,720 ( 0 % )                           ;
 ; Total DSP Blocks                ; 0 / 112 ( 0 % )                                 ;
@@ -68,7 +68,7 @@ agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 03/29/2019 20:11:24 ;
+; Start date & time ; 04/08/2019 13:24:35 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; DE10_NANO_SoC_GHRD  ;
 +-------------------+---------------------+
@@ -79,7 +79,7 @@ agreement for further details.
 +---------------------------------------+--------------------------------------------------------------------------+---------------+--------------------------------+------------+
 ; Assignment Name                       ; Value                                                                    ; Default Value ; Entity Name                    ; Section Id ;
 +---------------------------------------+--------------------------------------------------------------------------+---------------+--------------------------------+------------+
-; COMPILER_SIGNATURE_ID                 ; 268883478210468.155391188110264                                          ; --            ; --                             ; --         ;
+; COMPILER_SIGNATURE_ID                 ; 268883478210468.155475147104444                                          ; --            ; --                             ; --         ;
 ; ECO_REGENERATE_REPORT                 ; On                                                                       ; Off           ; --                             ; --         ;
 ; HPS_ISW_FILE                          ; soc_system/synthesis/submodules/sequencer/alt_types.pre.h                ; --            ; soc_system_hps_0_hps_io_border ; --         ;
 ; HPS_ISW_FILE                          ; soc_system/synthesis/submodules/sequencer/emif.pre.xml                   ; --            ; soc_system_hps_0_hps_io_border ; --         ;
@@ -98,7 +98,7 @@ agreement for further details.
 ; MAX_CORE_JUNCTION_TEMP                ; 100                                                                      ; --            ; --                             ; --         ;
 ; MIN_CORE_JUNCTION_TEMP                ; -40                                                                      ; --            ; --                             ; --         ;
 ; MISC_FILE                             ; soc_system/synthesis/../soc_system.cmp                                   ; --            ; --                             ; --         ;
-; MISC_FILE                             ; soc_system/synthesis/../../C                                             ; --            ; --                             ; --         ;
+; MISC_FILE                             ; soc_system/synthesis/../../output_files/C                                ; --            ; --                             ; --         ;
 ; MISC_FILE                             ; soc_system/synthesis/soc_system_hps_0_hps.svd                            ; --            ; --                             ; --         ;
 ; MISC_FILE                             ; soc_system/synthesis/../../soc_system.qsys                               ; --            ; --                             ; --         ;
 ; MISC_FILE                             ; soc_system/synthesis/submodules/sequencer/alt_types.pre.h                ; --            ; --                             ; --         ;
@@ -124,7 +124,7 @@ agreement for further details.
 ; PROJECT_OUTPUT_DIRECTORY              ; output_files                                                             ; --            ; --                             ; --         ;
 ; SLD_FILE                              ; soc_system/synthesis/soc_system.regmap                                   ; --            ; --                             ; --         ;
 ; SLD_FILE                              ; soc_system/synthesis/soc_system.debuginfo                                ; --            ; --                             ; --         ;
-; SLD_INFO                              ; QSYS_NAME soc_system HAS_SOPCINFO 1 GENERATION_ID 1553910968             ; --            ; soc_system                     ; --         ;
+; SLD_INFO                              ; QSYS_NAME soc_system HAS_SOPCINFO 1 GENERATION_ID 1554750959             ; --            ; soc_system                     ; --         ;
 ; SOPCINFO_FILE                         ; soc_system/synthesis/../../soc_system.sopcinfo                           ; --            ; --                             ; --         ;
 ; SYNTHESIS_ONLY_QIP                    ; On                                                                       ; --            ; --                             ; --         ;
 ; USE_DLL_FREQUENCY_FOR_DQS_DELAY_CHAIN ; On                                                                       ; Off           ; --                             ; --         ;
@@ -136,11 +136,11 @@ agreement for further details.
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name               ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis      ; 00:00:42     ; 1.0                     ; 1007 MB             ; 00:01:05                           ;
-; Fitter                    ; 00:01:36     ; 1.1                     ; 3276 MB             ; 00:02:59                           ;
-; Assembler                 ; 00:00:12     ; 1.0                     ; 746 MB              ; 00:00:11                           ;
-; TimeQuest Timing Analyzer ; 00:00:36     ; 1.2                     ; 1742 MB             ; 00:00:41                           ;
-; Total                     ; 00:03:06     ; --                      ; --                  ; 00:04:56                           ;
+; Analysis & Synthesis      ; 00:00:42     ; 1.0                     ; 1031 MB             ; 00:01:06                           ;
+; Fitter                    ; 00:01:27     ; 1.1                     ; 3274 MB             ; 00:02:47                           ;
+; Assembler                 ; 00:00:11     ; 1.0                     ; 747 MB              ; 00:00:10                           ;
+; TimeQuest Timing Analyzer ; 00:00:33     ; 1.2                     ; 1741 MB             ; 00:00:39                           ;
+; Total                     ; 00:02:53     ; --                      ; --                  ; 00:04:42                           ;
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 

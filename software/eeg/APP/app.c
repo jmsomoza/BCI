@@ -74,34 +74,23 @@
 
 #define FPGA_TO_HPS_LW_ADDR(base)  ((void *) (((char *)  (ALT_LWFPGASLVS_ADDR))+ (base)))
 
-#define TOGGLE_LED_PRIO 6
-#define READ_SWITCH_TASK_PRIO 7
-#define DISPLAY_LCD_TASK_PRIO 5
+#define TOGGLE_LED_PRIO 5
+#define DISPLAY_LCD_TASK_PRIO 6
 #define TASK_STACK_SIZE 4096
 #define BUFFER_SIZE 100
-#define ADC_SIZE 100
+#define ADC_SIZE 20
 
-#define LEDR_ADD 0x00000000
-#define LEDR_BASE FPGA_TO_HPS_LW_ADDR(LEDR_ADD)
 
 #define LCDR_ADD 0x00000200
 #define LCDR_BASE FPGA_TO_HPS_LW_ADDR(LCDR_ADD)
 
-
-#define SW_ADD 0x00000300
-#define SW_BASE FPGA_TO_HPS_LW_ADDR(SW_ADD)
-
-// externel LEDs
+// external LEDs
 #define EXT_ADD 0x00000400
 #define EXT_BASE FPGA_TO_HPS_LW_ADDR(EXT_ADD)
 
 // adc
 #define ADC_ADD 0x00000500
 #define ADC_BASE FPGA_TO_HPS_LW_ADDR(ADC_ADD)
-
-// adc
-#define INPUT_ADD 0x00000600
-#define INPUT_BASE FPGA_TO_HPS_LW_ADDR(INPUT_ADD)
 
 
 /*
@@ -111,11 +100,8 @@
 */
 
 CPU_STK ToggleLEDStk[TASK_STACK_SIZE];
-CPU_STK ReadSwitchStk[TASK_STACK_SIZE];
 CPU_STK DisplayOnLCDStk[TASK_STACK_SIZE];
 
-void* switchelements[32];
-OS_EVENT*  MsgQ;
 FILE * fp;
 
 uint16_t* buffer;
@@ -128,9 +114,7 @@ cbuf_handle_t cirbuf;
 */
 
 static  void  ToggleLED (void *p_arg);
-static  void  ReadSwitch (void *p_arg);
 static  void  DisplayOnLCD (void *p_arg);
-void print_buffer_status(cbuf_handle_t cbuf);
 
 /*
 *********************************************************************************************************
@@ -151,8 +135,10 @@ int main ()
 {
     INT8U os_err;
     INT8U os_err_MsgQ;
-    INT8U os_err_ReadSwitch;
     INT8U os_err_DisplayOnLCD;
+
+    ALT_BRIDGE_t lw_bridge = ALT_BRIDGE_LWH2F;
+    ALT_STATUS_CODE err_bridge = alt_bridge_init(lw_bridge, NULL, NULL);
 
     BSP_WatchDog_Reset();                                       /* Reset the watchdog as soon as possible.              */
 
@@ -160,11 +146,6 @@ int main ()
     BSP_BranchPredictorEn();                                    /* Enable branch prediction.                            */
     BSP_L2C310Config();                                         /* Configure the L2 cache controller.                   */
     BSP_CachesEn();                                             /* Enable L1 I&D caches + L2 unified cache.             */
-
-    ALT_BRIDGE_t lw_bridge = ALT_BRIDGE_LWH2F;
-    ALT_STATUS_CODE err_bridge = alt_bridge_init(lw_bridge, NULL, NULL);
-
-
 
     CPU_Init();
 
@@ -181,11 +162,10 @@ int main ()
     // initialize circular buffer using the buffer just created
     cirbuf = circular_buf_init(buffer, BUFFER_SIZE);
 
-    MsgQ = OSQCreate(switchelements, 32);
-
     if (os_err_MsgQ != OS_ERR_NONE) {
             ; /* Handle error. */
         }
+
 
     os_err = OSTaskCreateExt((void (*)(void *)) ToggleLED,   /* Create the start task.                               */
                              (void          * ) 0,
@@ -200,20 +180,6 @@ int main ()
     if (os_err != OS_ERR_NONE) {
         ; /* Handle error. */
     }
-
-    os_err_ReadSwitch = OSTaskCreateExt((void (*)(void *)) ReadSwitch,   // Create the start task.
-                                     (void          * ) 0,
-                                     (OS_STK        * )&ReadSwitchStk[TASK_STACK_SIZE - 1],
-                                     (INT8U           ) READ_SWITCH_TASK_PRIO,
-                                     (INT16U          ) READ_SWITCH_TASK_PRIO,  // reuse prio for ID
-                                     (OS_STK        * )&ReadSwitchStk[0],
-                                     (INT32U          ) TASK_STACK_SIZE,
-                                     (void          * )0,
-                                     (INT16U          )(OS_TASK_OPT_STK_CLR | OS_TASK_OPT_STK_CHK));
-
-        if (os_err_ReadSwitch != OS_ERR_NONE) {
-                    ; // Handle error.
-                }
 
     os_err_DisplayOnLCD = OSTaskCreateExt((void (*)(void *)) DisplayOnLCD,   /* Create the start task.                               */
                                      (void          * ) 0,
@@ -241,8 +207,9 @@ int main ()
 *********************************************************************************************************
 *                                           ToggleLED()
 *
-* Description : Upon outputting the sampled voltage reading from the circular buffer, check its
-* 				difference with the previous sample and determine whether an LED should be toggled
+* Description : Upon outputting the detected peak voltage reading from the circular buffer, ensure that the
+* 				value is not from an empty circular buffer and that the present peak is not just the last
+* 				peak, and then toggle the LEDs if so
 *
 * Arguments   : p_arg       Argument passed by 'OSTaskCreate()'.
 *
@@ -257,65 +224,31 @@ int main ()
 
 static  void  ToggleLED (void *p_arg)
 {
-
     BSP_OS_TmrTickInit(OS_TICKS_PER_SEC);                       /* Configure and enable OS tick interrupt.              */
-    int cnt = 0;
-    // variable representing the voltage of the current sample
+    // variable representing the voltage of the current sample received from the circular buffer
     uint16_t voltage;
-    OSTimeDlyHMSM(0, 0, 0, 750);
+    // variable representing the voltage of the last sample received from the circular buffer
+    uint16_t old_voltage;
+    // delay to avoid reading an empty circular buffer, this delay allows the other task to put an element in the
+    // circular buffer
+    OSTimeDlyHMSM(0, 0, 0, 250);
 
     for(;;) {
         BSP_WatchDog_Reset();                                   /* Reset the watchdog.                                  */
         // retrieve the next available value from the buffer
         circular_buf_get(cirbuf, &voltage);
-        printf("VVVVVVVVVVVVVVVVVVVoltage value: %u and INDEX is %i and the TIME is: %i\n", voltage, cnt, OSTimeGet());
-		OSTimeDlyHMSM(0, 0, 0, 500);
-		//printf("VVVVVVVVVVVVVVVVVVVoltage value: %u and INDEX is %i and the SIZE is: %u\n", voltage, cnt, circular_buf_size(cirbuf));
-		// check if the difference in voltage of the last 2 samples had a magnitude of 250mV or more
-		if(voltage != 771/*diff >= 250 && diff <= 65285 && old_voltage != 0*/)
+		// only light up the LEDs if the buffer is not empty (ADC value = 771), and a the voltage value is not
+        // the same as the last sample
+		if(voltage != 771 && voltage != old_voltage)
 		{
-	        // if so then toggle the LED
-			alt_write_word(EXT_BASE, (1 << 6)-1);
+			// if true then toggle the LED and delay for a small time in order to see the blink
+			alt_write_word(EXT_BASE, (1 << 12)-1);
+			OSTimeDlyHMSM(0, 0, 0, 250);
 		}
-		cnt++;
-    }
-
-}
-
-/*
-*********************************************************************************************************
-*                                           ReadSwitch()
-*
-* Description : Reads data value from switch.
-*
-* Arguments   : p_arg       Argument passed by 'OSTaskCreate()'.
-*
-* Returns     : none.
-*
-* Created by  : main().
-*
-* Notes       : (1) The ticker MUST be initialised AFTER multitasking has started.
-*********************************************************************************************************
-*/
-
-static  void  ReadSwitch (void *p_arg)
-{
-
-    BSP_OS_TmrTickInit(OS_TICKS_PER_SEC);                       // Configure and enable OS tick interrupt.
-
-
-    for(;;) {
-    	uint32_t test = alt_read_dword(SW_BASE);
-    	// turns on the LED # corresponding to switch value (0-15)
-    	alt_write_word(EXT_BASE, (1 << test)-1);
-    	OSTimeDlyHMSM(0, 0, 0, 500);
-
-    	//printf("%u\n", test);
-    	char sw_val[20];
-    	sprintf(sw_val, "%u", test);
-    	//printf("%s\n", sw_val);
-
-    	OSQPost(MsgQ, (void*)test);
+		// assign current sample value to the old_voltage variable
+		old_voltage = voltage;
+		// delay here to align tasks, so that the DisplayOnLCD task can catch up to this task
+		OSTimeDlyHMSM(0, 0, 1, 750);
     }
 
 }
@@ -324,7 +257,10 @@ static  void  ReadSwitch (void *p_arg)
 *********************************************************************************************************
 *                                           DisplayOnLCD()
 *
-* Description : Displays the received switch data on the LCD
+* Description : Analyze ADC_SIZE amount of voltage samples from the ADC and use the peakFinder function
+* 				in order to detect the presence of any peaks. Upon the detection of one or more peaks, the
+* 				voltage value is put into a circular buffer to later be used by the ToggleLED task to decide
+* 				whether or not to trigger the LEDs.
 *
 * Arguments   : p_arg       Argument passed by 'OSTaskCreate()'.
 *
@@ -332,103 +268,52 @@ static  void  ReadSwitch (void *p_arg)
 *
 * Created by  : main().
 *
-* Notes       : (1) The ticker MUST be initialised AFTER multitasking has started.
+* Notes       :
 *********************************************************************************************************
 */
 
 static  void  DisplayOnLCD (void *p_arg)
 {
-	 INT8U os_err_local;
 	// initialize variables
-	int index_counter = 0;
-	char sw_val[20];
 	char adc_val[ADC_SIZE];
-	//int yolo[ADC_SIZE];
-	int yolo[ADC_SIZE] = {3992,3948,3932,3924,3904,3864,3852,3823,3796,3788,3768,3740,
-			3712,3668,3667,4095,3879,3764,3719,3667,3612,3567,3568,3596,3608,3547,3459,
-		    3248,3239,3223,3276,3235,3059,3596,3136,3047,3036,3048,3067,3072,3055,3152,
-		    3052,3011,2995,3183,3084,2907,2875,2859,2927,2936,2880,2864,2879,2788,2872,
-		    3200,2832,2732,2711,2700,2691,2672,2660,2635,2628,2623,2619,2599,2623,2583,
-		    2595,2636,3516,2668,2491,2496,2500,2483,2408,2415,2423,3259,2659,2488,2451,
-		    2436,2431,2428,2392,2376,2364,2351,2335,2320,3107,2424,2340,2335};
-	int adcarr[ADC_SIZE];
+	int data[ADC_SIZE];
 	int listOfIndexes[ADC_SIZE];
 	int indx;
 
     // initialize file to store all the received values from the ADC in
-	fp = fopen("c:\\users\\somoza\\hithere.txt","w");
+	fp = fopen("c:\\users\\somoza\\ADC.txt","w");
 
 	// align the LCD screen to print the required information
 	ClearLCD();
 	HomeLCD();
 	PrintStringLCD("Volt(mV): ");
-	MoveCursorLCD(20);
-	PrintStringLCD("Switches: ");
-
 	for(;;)
 	{
-		//printf("STARTING!! \n");
 		for(int j = 0; j < ADC_SIZE; j++){
-			// read sampled voltage data from the ADC dedicated memory address
-			//yolo[j] = alt_read_dword(ADC_BASE);
-			//adcarr[j] = (int) yolo[j];
-				//OSTimeDlyHMSM(0, 0, 0, 6500);
-				//printf("%i\n", adcarr[j]);
-				//fprintf(fp, "%u\r\n", adcarray[j]);
-			adcarr[j] = yolo[j];
+			// read sampled voltage data from the ADC dedicated memory address into the data array
+			data[j] = alt_read_dword(ADC_BASE);
+			// delay needed to properly store all ADC_SIZE values into the data array
+			OSTimeDlyHMSM(0, 0, 0, 100);
 		}
-
-		// wait until you receive the switch value from the message queue
-		uint32_t msg = (uint32_t) OSQPend(MsgQ, 0, &os_err_local);
-		// store that value in another variable
-		sprintf(sw_val, "%u", msg);
-
-		indx = peakFinder(adcarr, ADC_SIZE, listOfIndexes);
-		//printf("MIDWAY!! %i\n", indx);
-//		for(int i = 0; i < indx; i++){
-//			printf("ADC_VALUES: %i %i %i\n", adcarr[listOfIndexes[i]], listOfIndexes[i], indx);
-//		}
-		index_counter = 0;
-		for(int j = 0; j < ADC_SIZE; j++){
-			// align the LCD screen to print the required information
-			MoveCursorLCD(10);
-			PrintStringLCD("     ");
-			MoveCursorLCD(10);
-
-			if(j == listOfIndexes[index_counter] && j != 0){
-				sprintf(adc_val, "%i", adcarr[listOfIndexes[index_counter]]);
-				PrintStringLCD(adc_val);
-				//OSTimeDlyHMSM(0, 0, 0, 500);
-				// insert sampled voltage from the ADC into the circular buffer
-				circular_buf_put(cirbuf, adcarr[listOfIndexes[index_counter]]);
-				printf("GOING IN PORTAL AAAAAAA: %i  %i  %u\n",  adcarr[listOfIndexes[index_counter]], index_counter, circular_buf_size(cirbuf));
-				OSTimeDlyHMSM(0, 0, 0, 500);
-				index_counter++;
-			}
-			else{
-				sprintf(adc_val, "%i", 0000);
-				PrintStringLCD(adc_val);
+		// find the peaks in the data array, and return the number of indexes into the indx variable
+		// and the indexes of the peaks into the listOfIndexes array
+		indx = peakFinder(data, ADC_SIZE, listOfIndexes);
+		// align the LCD screen to print the required information
+		MoveCursorLCD(10);
+		// if one or more peaks were detected, put the value of the first peak detected into the circular buffer
+		// and also print on the LCD
+		if(indx > 0){
+			// Print the peak's voltage value in mV onto the LCD
+			sprintf(adc_val, "%i", data[listOfIndexes[0]]);
+			PrintStringLCD(adc_val);
+			PrintStringLCD("   ");
+			// insert first detected peak from the ADC into the circular buffer
+			circular_buf_put(cirbuf, data[listOfIndexes[0]]);
 		}
-			// align the LCD screen to print the required information
-			MoveCursorLCD(30);
-			PrintStringLCD("     ");
-			MoveCursorLCD(30);
-			PrintStringLCD(sw_val);
-		// print the circular buffer size and indicators of whether it is full or empty
-			//print_buffer_status(cirbuf);
+		// if no peaks were detected print the peak's voltage value in mV onto the LCD and continue on
+		else{
+			sprintf(adc_val, "%i", 0000);
+			PrintStringLCD(adc_val);
 		}
-		//printf("FINITO\n");
 	}
-
-	free(buffer);
-	circular_buf_free(cirbuf);
-}
-
-void print_buffer_status(cbuf_handle_t cbuf)
-{
-	// print the circular buffer size and indicators of whether it is full or empty
-	printf("Full: %d, empty: %d, size %u\n",
-			circular_buf_full(cbuf),
-			circular_buf_empty(cbuf),
-			circular_buf_size(cbuf));
 }

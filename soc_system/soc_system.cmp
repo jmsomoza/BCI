@@ -11,7 +11,7 @@
 			character_lcd_0_external_interface_RS   : out   std_logic;                                        -- RS
 			character_lcd_0_external_interface_RW   : out   std_logic;                                        -- RW
 			clk_clk                                 : in    std_logic                     := 'X';             -- clk
-			ext_leds_external_connection_export     : out   std_logic_vector(5 downto 0);                     -- export
+			ext_leds_external_connection_export     : out   std_logic_vector(11 downto 0);                    -- export
 			green_leds_external_connection_export   : out   std_logic_vector(7 downto 0);                     -- export
 			hps_0_h2f_reset_reset_n                 : out   std_logic;                                        -- reset_n
 			hps_0_hps_io_hps_io_emac1_inst_TX_CLK   : out   std_logic;                                        -- hps_io_emac1_inst_TX_CLK

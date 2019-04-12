@@ -15,7 +15,7 @@ module soc_system (
 		output wire        character_lcd_0_external_interface_RS,   //                                   .RS
 		output wire        character_lcd_0_external_interface_RW,   //                                   .RW
 		input  wire        clk_clk,                                 //                                clk.clk
-		output wire [5:0]  ext_leds_external_connection_export,     //       ext_leds_external_connection.export
+		output wire [11:0] ext_leds_external_connection_export,     //       ext_leds_external_connection.export
 		output wire [7:0]  green_leds_external_connection_export,   //     green_leds_external_connection.export
 		output wire        hps_0_h2f_reset_reset_n,                 //                    hps_0_h2f_reset.reset_n
 		output wire        hps_0_hps_io_hps_io_emac1_inst_TX_CLK,   //                       hps_0_hps_io.hps_io_emac1_inst_TX_CLK

@@ -12,6 +12,7 @@
 		.clk_clk                                 (<connected-to-clk_clk>),                                 //                                clk.clk
 		.ext_leds_external_connection_export     (<connected-to-ext_leds_external_connection_export>),     //       ext_leds_external_connection.export
 		.green_leds_external_connection_export   (<connected-to-green_leds_external_connection_export>),   //     green_leds_external_connection.export
+		.hps_0_h2f_reset_reset_n                 (<connected-to-hps_0_h2f_reset_reset_n>),                 //                    hps_0_h2f_reset.reset_n
 		.hps_0_hps_io_hps_io_emac1_inst_TX_CLK   (<connected-to-hps_0_hps_io_hps_io_emac1_inst_TX_CLK>),   //                       hps_0_hps_io.hps_io_emac1_inst_TX_CLK
 		.hps_0_hps_io_hps_io_emac1_inst_TXD0     (<connected-to-hps_0_hps_io_hps_io_emac1_inst_TXD0>),     //                                   .hps_io_emac1_inst_TXD0
 		.hps_0_hps_io_hps_io_emac1_inst_TXD1     (<connected-to-hps_0_hps_io_hps_io_emac1_inst_TXD1>),     //                                   .hps_io_emac1_inst_TXD1
@@ -77,7 +78,6 @@
 		.memory_mem_dm                           (<connected-to-memory_mem_dm>),                           //                                   .mem_dm
 		.memory_oct_rzqin                        (<connected-to-memory_oct_rzqin>),                        //                                   .oct_rzqin
 		.reset_reset_n                           (<connected-to-reset_reset_n>),                           //                              reset.reset_n
-		.switches_external_connection_export     (<connected-to-switches_external_connection_export>),     //       switches_external_connection.export
-		.hps_0_h2f_reset_reset_n                 (<connected-to-hps_0_h2f_reset_reset_n>)                  //                    hps_0_h2f_reset.reset_n
+		.switches_external_connection_export     (<connected-to-switches_external_connection_export>)      //       switches_external_connection.export
 	);
 

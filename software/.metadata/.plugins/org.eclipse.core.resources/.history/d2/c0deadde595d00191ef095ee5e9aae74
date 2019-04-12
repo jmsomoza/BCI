@@ -1,0 +1,24 @@
+#include <configs/platform-auto.h>
+
+#ifdef CONFIG_BOOTDELAY
+#undef CONFIG_BOOTDELAY
+#endif
+#define CONFIG_BOOTDELAY        0
+
+#ifdef CONFIG_ENV_IS_IN_SPI_FLASH
+#undef CONFIG_ENV_IS_IN_SPI_FLASH
+#endif
+#define CONFIG_ENV_IS_NOWHERE
+
+#undef CONFIG_NETCONSOLE
+#undef CONFIG_CMD_DHCP
+#undef CONFIG_CMD_MII
+#undef CONFIG_CMD_NET
+#undef CONFIG_CMD_PING
+#undef CONFIG_CMD_NFS
+
+/* PREBOOT */
+#ifdef CONFIG_PREBOOT
+#undef CONFIG_PREBOOT
+#endif
+#define CONFIG_PREBOOT  "echo U-BOOT for ${hostname};setenv preboot; echo no-net"

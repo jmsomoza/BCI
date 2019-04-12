@@ -211,7 +211,7 @@ VCCIO4A                      : AE21      : power  :                   : 3.3V    
 RESERVED_INPUT_WITH_WEAK_PULLUP : AE22      :        :                   :         : 4A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : AE23      :        :                   :         : 4A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : AE24      :        :                   :         : 4A        :                
-RESERVED_INPUT_WITH_WEAK_PULLUP : AE25      :        :                   :         : 5A        :                
+GPIO_1[6]                    : AE25      : output : 3.3-V LVTTL       :         : 5A        : Y              
 LED[5]                       : AE26      : output : 3.3-V LVTTL       :         : 5A        : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : AE27      :        :                   :         : 6B        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : AE28      :        :                   :         : 6B        :                
@@ -241,7 +241,7 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : AF23      :        :                   :      
 GND                          : AF24      : gnd    :                   :         :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : AF25      :        :                   :         : 4A        :                
 LED[4]                       : AF26      : output : 3.3-V LVTTL       :         : 5A        : Y              
-RESERVED_INPUT_WITH_WEAK_PULLUP : AF27      :        :                   :         : 4A        :                
+GPIO_1[7]                    : AF27      : output : 3.3-V LVTTL       :         : 4A        : Y              
 GPIO_1[5]                    : AF28      : output : 3.3-V LVTTL       :         : 4A        : Y              
 GND                          : AG1       : gnd    :                   :         :           :                
 GND                          : AG2       : gnd    :                   :         :           :                
@@ -267,8 +267,8 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : AG21      :        :                   :      
 VCCIO4A                      : AG22      : power  :                   : 3.3V    : 4A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : AG23      :        :                   :         : 4A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : AG24      :        :                   :         : 4A        :                
-RESERVED_INPUT_WITH_WEAK_PULLUP : AG25      :        :                   :         : 4A        :                
-RESERVED_INPUT_WITH_WEAK_PULLUP : AG26      :        :                   :         : 4A        :                
+GPIO_1[10]                   : AG25      : output : 3.3-V LVTTL       :         : 4A        : Y              
+GPIO_1[8]                    : AG26      : output : 3.3-V LVTTL       :         : 4A        : Y              
 GND                          : AG27      : gnd    :                   :         :           :                
 GPIO_1[4]                    : AG28      : output : 3.3-V LVTTL       :         : 4A        : Y              
 HDMI_TX_D[17]                : AH2       : output : 3.3-V LVTTL       :         : 3B        : Y              
@@ -295,8 +295,8 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : AH22      :        :                   :      
 RESERVED_INPUT_WITH_WEAK_PULLUP : AH23      :        :                   :         : 4A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : AH24      :        :                   :         : 4A        :                
 VCCIO4A                      : AH25      : power  :                   : 3.3V    : 4A        :                
-RESERVED_INPUT_WITH_WEAK_PULLUP : AH26      :        :                   :         : 4A        :                
-RESERVED_INPUT_WITH_WEAK_PULLUP : AH27      :        :                   :         : 4A        :                
+GPIO_1[11]                   : AH26      : output : 3.3-V LVTTL       :         : 4A        : Y              
+GPIO_1[9]                    : AH27      : output : 3.3-V LVTTL       :         : 4A        : Y              
 GND                          : B1        :        :                   :         :           :                
 DNU                          : B2        :        :                   :         :           :                
 GND                          : B3        : gnd    :                   :         :           :                

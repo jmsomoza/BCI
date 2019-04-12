@@ -13,6 +13,7 @@ module soc_system (
 	clk_clk,
 	ext_leds_external_connection_export,
 	green_leds_external_connection_export,
+	hps_0_h2f_reset_reset_n,
 	hps_0_hps_io_hps_io_emac1_inst_TX_CLK,
 	hps_0_hps_io_hps_io_emac1_inst_TXD0,
 	hps_0_hps_io_hps_io_emac1_inst_TXD1,
@@ -78,8 +79,7 @@ module soc_system (
 	memory_mem_dm,
 	memory_oct_rzqin,
 	reset_reset_n,
-	switches_external_connection_export,
-	hps_0_h2f_reset_reset_n);	
+	switches_external_connection_export);	
 
 	output		adc_0_external_interface_sclk;
 	output		adc_0_external_interface_cs_n;
@@ -92,8 +92,9 @@ module soc_system (
 	output		character_lcd_0_external_interface_RS;
 	output		character_lcd_0_external_interface_RW;
 	input		clk_clk;
-	output	[5:0]	ext_leds_external_connection_export;
+	output	[11:0]	ext_leds_external_connection_export;
 	output	[7:0]	green_leds_external_connection_export;
+	output		hps_0_h2f_reset_reset_n;
 	output		hps_0_hps_io_hps_io_emac1_inst_TX_CLK;
 	output		hps_0_hps_io_hps_io_emac1_inst_TXD0;
 	output		hps_0_hps_io_hps_io_emac1_inst_TXD1;
@@ -160,5 +161,4 @@ module soc_system (
 	input		memory_oct_rzqin;
 	input		reset_reset_n;
 	output	[3:0]	switches_external_connection_export;
-	output		hps_0_h2f_reset_reset_n;
 endmodule
